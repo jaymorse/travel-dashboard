@@ -106,7 +106,7 @@ th.num { text-align:right; }
 <tbody id="tb"></tbody>
 </table></div>
 <div class="foot">
-<b>Connection score:</b> direct = 0, one stop = 1, two stops = 2, summed across employees (lower is better; responds to the country filter). Stops are the fewest connections on any scheduled commercial route from each employee's nearest airport, computed from the open <i>airline-route-data</i> route set. It does not distinguish seasonal from year-round service, does not check schedules or timings, and Sicily takes the best of Catania, Palermo, Trapani and Comiso. Marbella is scored to M&aacute;laga (AGP) and Barcelona to BCN only (not Girona or Reus). The mild-January button rotates through five above-freezing destinations that score within about 10 points of Marbella (Palma, Nice, Rome, Madrid, Dublin), two at a time; none is tropical, and nothing tropical scores that low. January temperatures are monthly means (average of daily highs and lows). Values without a tilde are from published climate normals for the airport's city. A tilde means an estimate: from the nearest reference city adjusted for elevation (est.), or modelled from latitude and elevation alone (rough est., about plus or minus 5&deg;C). Verify the specific routes for your travel dates before committing.<br><br>
+<b>Connection score:</b> direct = 0, one stop = 1, two stops = 2, summed across employees (lower is better; responds to the country filter). Stops are the fewest connections on any scheduled commercial route from each employee's nearest airport, computed from the open <i>airline-route-data</i> route set. It does not distinguish seasonal from year-round service, does not check schedules or timings, and Sicily takes the best of Catania, Palermo, Trapani and Comiso. Marbella is scored to M&aacute;laga (AGP) and Barcelona to BCN only (not Girona or Reus). The mild-January button works through twelve above-freezing destinations scoring no more than about 20 points above Marbella (Palma, Faro, Nice, Rome, Athens, Olbia, Madrid, Istanbul, Paris, Dublin, Amsterdam, Edinburgh), two at a time and covering all twelve before any repeats; none is tropical, and nothing tropical scores that low. January temperatures are monthly means (average of daily highs and lows). Values without a tilde are from published climate normals for the airport's city. A tilde means an estimate: from the nearest reference city adjusted for elevation (est.), or modelled from latitude and elevation alone (rough est., about plus or minus 5&deg;C). Verify the specific routes for your travel dates before committing.<br><br>
 Flight time = estimated nonstop block time (great-circle distance / 810 km/h + 33 min for taxi, climb and descent), averaged over both directions; winds and routing vary it by &plusmn;10&ndash;15%. Many city pairs have no nonstop service &mdash; treat as a lower bound when a connection is required. Town &rarr; airport is straight-line; driving is typically 1.2&ndash;1.4&times; longer. One employee (Poland, no town listed) is excluded.
 </div>
 </div>
@@ -125,23 +125,31 @@ function janTemp(code){
   return `Avg January: <b>~${c}\u00B0C / ${f}\u00B0F</b> <span title="Modelled from latitude and elevation only; treat as rough, plus or minus 5C">(rough est.)</span>`;
 }
 const JAN_POOL = [
-  {code:'PMI', name:'Palma de Mallorca (PMI)', note:'January: highs about 15°C, lows about 6°C. The mildest of the group. Quiet off-season island.'},
+  {code:'PMI', name:'Palma de Mallorca (PMI)', note:'January: highs about 15°C, lows about 6°C. Quiet off-season island.'},
+  {code:'FAO', name:'Faro, Algarve (FAO)', note:'January: highs about 16°C, lows about 8°C. Mild and often sunny, the warmest of the group. Quiet off-season coast.'},
   {code:'NCE', name:'Nice (NCE)', note:'January: highs about 13°C, lows about 5°C. Mild and bright on the Riviera.'},
   {code:'FCO', name:'Rome (FCO)', note:'January: highs about 13°C, lows about 4°C. Mild and often sunny, not tropical.'},
+  {code:'ATH', name:'Athens (ATH)', note:'January: highs about 13°C, lows about 7°C. Mild but wet, with the ancient sites nearly empty.'},
+  {code:'OLB', name:'Olbia, Sardinia (OLB)', note:'Mild Mediterranean winter, but most Costa Smeralda resorts are shut in January.'},
   {code:'MAD', name:'Madrid (MAD)', note:'January: highs about 10°C, lows about 3°C. Dry and sunny but cool.'},
-  {code:'DUB', name:'Dublin (DUB)', note:'January: highs about 8°C, lows about 3°C. Above freezing but cool and wet. Not tropical.'}
+  {code:'IST', name:'Istanbul (IST)', note:'January: highs about 8°C, lows about 3°C. Cool and damp, occasional snow.'},
+  {code:'CDG', name:'Paris (CDG)', note:'January: highs about 7°C, lows about 3°C. Cool and grey.'},
+  {code:'DUB', name:'Dublin (DUB)', note:'January: highs about 8°C, lows about 3°C. Above freezing but cool and wet. Not tropical.'},
+  {code:'AMS', name:'Amsterdam (AMS)', note:'January: highs about 6°C, lows about 2°C. Above freezing, grey and damp.'},
+  {code:'EDI', name:'Edinburgh (EDI)', note:'January: highs about 7°C, lows about 1°C. Cold with short days; frost is likely overnight.'}
 ];
-let janOpen = false, janPair = [], janHist = [];
+let janOpen = false, janPair = [], janDeck = [];
+function shuffled(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function pickJan(){
   const prev = janPair.map(o=>o.code);
-  const avail = JAN_POOL.filter(o=>!prev.includes(o.code));
-  const combos = [];
-  for(let i=0;i<avail.length;i++) for(let j=i+1;j<avail.length;j++) combos.push([avail[i],avail[j]]);
-  const key = c => c.map(o=>o.code).sort().join('+');
-  let ok = combos.filter(c=>!janHist.includes(key(c)));
-  if(!ok.length) ok = combos;
-  janPair = ok[Math.floor(Math.random()*ok.length)];
-  janHist.push(key(janPair)); if(janHist.length>2) janHist.shift();
+  if(janDeck.length<2){
+    let d = shuffled(JAN_POOL);
+    // keep the new deck's first two away from the pair just shown
+    d.sort((x,y)=>(prev.includes(x.code)?1:0)-(prev.includes(y.code)?1:0));
+    const head = shuffled(d.slice(0,2)), rest = shuffled(d.slice(2));
+    janDeck = head.concat(rest);
+  }
+  janPair = janDeck.splice(0,2);
 }
 function scoreFor(code, rows){ const t=DEST_STOPS[code]; let score=0,b=[0,0,0,0]; rows.forEach(r=>{ const v=+t[HA.indexOf(r.airport)]; score+=r.employees*v; b[Math.min(v,3)]+=r.employees; }); return {score,b}; }
 function renderJan(rows){
