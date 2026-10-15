@@ -146,10 +146,10 @@ const QUOTES = {
   MLA:[{v:'Surf', name:'Westin Dragonara Resort (5*)', t:387902, n:3, link:'https://app.pandadoc.com/document/v2?token=9af17232e82d9f39fa1e793180c455dfc6fc0e64'}],
   ATH:[{v:'Surf', name:'5* city hotel', t:406189, n:3, link:'https://app.pandadoc.com/document/v2?token=6589faffbcc4e22354b1eac77b106e6f48eaef43'}],
   CTA:[
-    {v:'Campfire', name:'Saracen Sands (4*), rooms buy-out. €106k rooms, €11k plenary room, €121k catering incl. gala dinners, €6.5k onsite team, 15% fee in total.', t:280991, n:4, link:CR},
-    {v:'Campfire', name:'Saracen Sands (4*), full buy-out. €106k rooms, €29k all meeting rooms, €121k catering incl. gala dinners, €6.5k onsite team, 15% fee in total. 13 km from Palermo airport.', t:301030, n:4, link:CR},
-    {v:'Campfire', name:'Mangia’s Pollina Resort (4*). €408k rooms and full board, €30k meeting package. 94 km from Palermo airport.', t:514234, n:4, link:CR},
-    {v:'Campfire', name:'Mangia’s Torre del Barone (5*). €420k rooms and full board, €27k meeting package. Exclusivity to be confirmed. 73 km from Trapani airport.', t:528752, n:4, link:CR}]
+    {v:'Campfire', name:'Saracen Sands (4*), rooms buy-out. €106k rooms, €11k plenary room, €121k catering incl. gala dinners, €6.5k onsite team, 15% fee in total.', facts:'238 bedrooms, 14 meeting rooms (largest seats 1,000), Teatro del Sole plenary (about 220). Two coffee breaks and a buffet lunch daily, gala dinner, onsite team. 13 km from Palermo airport (PMO), 73 km from Trapani, 273 km from Catania.', t:280991, n:4, link:'https://app.campfire-company.com/share/proposal/24f93ff827014cde9be5907ab3b2046ac9f25c16', lbl:'Saracen Sands rooms buy-out proposal'},
+    {v:'Campfire', name:'Saracen Sands (4*), full buy-out. €106k rooms, €29k all meeting rooms, €121k catering incl. gala dinners, €6.5k onsite team, 15% fee in total.', facts:'Same venue and capacity. Lines: accommodation €105,840, meeting package €28,733, catering €120,692 (4 lunches, 4 gala dinners, 3 coffee breaks), onsite €6,500. Subtotal €261,765 plus Campfire 15% €39,265.', t:301030, n:4, link:'https://app.campfire-company.com/share/proposal/fab356a4b8b4444cb0e4b707ebc6be0c48fc944a', lbl:'Saracen Sands full buy-out proposal'},
+    {v:'Campfire', name:'Mangia’s Pollina Resort (4*). €408k rooms and full board, €30k meeting package.', facts:'345 bedrooms, 4 meeting rooms (largest seats 500). Plenary Sala Ruggero, 670 m2, theatre for 220, 3 coffee breaks. Tourist tax included. 94 km from Palermo airport, 69 km from Palermo city.', t:514234, n:4, link:'https://app.campfire-company.com/share/proposal/a4cf1c1c0837461dab57535658c33cb1f76a43bc', lbl:'Pollina proposal'},
+    {v:'Campfire', name:'Mangia’s Torre del Barone (5*). €420k rooms and full board, €27k meeting package. Exclusivity to be confirmed.', facts:'230 bedrooms, 3 meeting rooms. Full board with 4 buffet lunches, 3 dinners and a gala dinner; city tourist tax included. 73 km from Trapani airport, 72 km from Palermo city, 219 km from Malta.', t:528752, n:4, link:'https://app.campfire-company.com/share/proposal/267ff1f4b0b347988847d31b3aaeaf36b81374f7', lbl:'Torre del Barone proposal'}]
 };
 QUOTES.BGI = [{v:'Surf', name:'Sam Lord\u2019s Castle Resort, all-inclusive. Last year\u2019s proposal (190 people, Jan 5-9, 2026), not repriced for 2027. Includes meals and drinks, airport shuttles, beach party dinner, meeting rooms, 3 onsite reps. Priced in US dollars.', t:617251, n:4, cur:'$', pax:190, rag:'rag-r'}];
 QUOTES.PMO = QUOTES.CTA; QUOTES.TPS = QUOTES.CTA;
@@ -177,8 +177,8 @@ function linkLine(code){
   const q = QUOTES[code]; if(!q) return '';
   const seen = new Set();
   return q.filter(x=>x.link && !seen.has(x.link) && seen.add(x.link)).map(x=>{
-    const lbl = x.v==='Campfire' ? 'Campfire client room (proposal and venue photos)' : x.link.includes('linguana') ? 'Coastal Breeze venue page (photos)' : 'Surf proposal (venue photos)';
-    return `<a href="${x.link}" target="_blank" rel="noopener">${lbl}</a>`; }).join(' &middot; ');
+    const lbl = x.lbl ? x.lbl : x.v==='Campfire' ? 'Campfire client room (proposal and venue photos)' : x.link.includes('linguana') ? 'Coastal Breeze venue page (photos)' : 'Surf proposal (venue photos)';
+    return `<a href="${x.link}" target="_blank" rel="noopener">${lbl}</a>`; }).join(' &middot; ') + (code==='CTA'||code==='PMO'||code==='TPS' ? ' &middot; <a href="'+CR+'" target="_blank" rel="noopener">Campfire client room (all venues)</a>' : '');
 }
 function costLine(code){
   const q = QUOTES[code];
@@ -190,7 +190,7 @@ function costLine(code){
   const cls = rag(best);
   const lab = cls==='rag-g' ? 'Lower cost' : cls==='rag-a' ? 'Mid cost' : 'Higher cost';
   const rows = q.map(x=> x.t
-    ? `<div class="qrow"><span class="rag ${rag(x)}"></span><b>${cur(x)}${Math.round(x.t/1000)}k</b> &middot; ${cur(x)}${ppOf(x).toLocaleString('en-US')}/person <span class="qsub">${x.v}, ${x.n} nights. ${x.name}</span></div>`
+    ? `<div class="qrow"><span class="rag ${rag(x)}"></span><b>${cur(x)}${Math.round(x.t/1000)}k</b> &middot; ${cur(x)}${ppOf(x).toLocaleString('en-US')}/person <span class="qsub">${x.v}, ${x.n} nights. ${x.name}</span>${x.facts?`<span class="qsub">${x.facts}</span>`:''}</div>`
     : `<div class="qrow"><span class="rag rag-n"></span><span class="qsub">${x.v}: ${x.name}</span></div>`).join('');
   return `<b>${lab}</b> (from ${cur(best)}${ppOf(best).toLocaleString('en-US')}/person, ${pax(best)} people)${rows}` + (code==='BGI' ? flightBlock() : '');
 }
