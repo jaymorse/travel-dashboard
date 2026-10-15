@@ -119,7 +119,7 @@ th.num { text-align:right; }
 <div class="foot">
 <b>Connection score:</b> direct = 0, one stop = 1, two stops = 2, summed across employees (lower is better; responds to the country filter). Stops are the fewest connections on any scheduled commercial route from each employee's nearest airport, computed from the open <i>airline-route-data</i> route set. It does not distinguish seasonal from year-round service, does not check schedules or timings, and Sicily takes the best of Catania, Palermo, Trapani and Comiso. Marbella is scored to M&aacute;laga (AGP) Barcelona to BCN only (not Girona or Reus), and Malta to MLA. Only locations with a vendor quote are shown as tiles (plus Marbella and Barbados, where quotes are awaited); the Destination box still scores any airport. Athens is scored to ATH. January temperatures are monthly means (average of daily highs and lows). Values without a tilde are from published climate normals for the airport's city. A tilde means an estimate: from the nearest reference city adjusted for elevation (est.), or modelled from latitude and elevation alone (rough est., about plus or minus 5&deg;C). Verify the specific routes for your travel dates before committing.<br><br>
 Flight time = estimated nonstop block time (great-circle distance / 810 km/h + 33 min for taxi, climb and descent), averaged over both directions; winds and routing vary it by &plusmn;10&ndash;15%. Many city pairs have no nonstop service &mdash; treat as a lower bound when a connection is required. Town &rarr; airport is straight-line; driving is typically 1.2&ndash;1.4&times; longer. One employee (Poland, no town listed) is excluded.
-<br><b>Cost:</b> totals are the vendor quotes received in October 2026 for 220 people, in euros, and are indicative: Surf Office (Barcelona, Malta, Athens) for 3 nights, Jan 11-14, including rooms, meals, meeting room and AV, airport transfers, one activity and a finale event; Campfire Company (Sicily) for 4 nights, Jan 11-15, with rooms, meals including gala dinner, plenary room and Campfire's 15% service fee included but airport transfers, activities and other third-party costs billed separately (Campfire says these are still indicative). The two vendors price different scopes, so treat comparisons as directional. Colour is set on the cheapest quote per person for that location: green under €1,500, amber €1,500 to €2,000, red above €2,000. Grey means no priced quote yet (Marbella, Barbados). Flights are not included.
+<br><b>Cost:</b> totals are the vendor quotes received in October 2026 for 220 people, in euros, and are indicative: Surf Office (Barcelona, Malta, Athens) for 3 nights, Jan 11-14, including rooms, meals, meeting room and AV, airport transfers, one activity and a finale event; Campfire Company (Sicily) for 4 nights, Jan 11-15, with rooms, meals including gala dinner, plenary room and Campfire's 15% service fee included but airport transfers, activities and other third-party costs billed separately (Campfire says these are still indicative). The two vendors price different scopes, so treat comparisons as directional. Colour is set on the cheapest quote per person for that location: green under €1,500, amber €1,500 to €2,000, red above €2,000. Grey means no priced quote yet (Marbella). Barbados is last year's Surf proposal in US dollars for 190 people, 4 nights, all-inclusive, and is red at any plausible exchange rate. Flights are not included.
 </div>
 </div>
 <script>
@@ -151,6 +151,7 @@ const QUOTES = {
     {v:'Campfire', name:'Mangia’s Pollina Resort (4*). €408k rooms and full board, €30k meeting package. 94 km from Palermo airport.', t:514234, n:4, link:CR},
     {v:'Campfire', name:'Mangia’s Torre del Barone (5*). €420k rooms and full board, €27k meeting package. Exclusivity to be confirmed. 73 km from Trapani airport.', t:528752, n:4, link:CR}]
 };
+QUOTES.BGI = [{v:'Surf', name:'Sam Lord\u2019s Castle Resort, all-inclusive. Last year\u2019s proposal (190 people, Jan 5-9, 2026), not repriced for 2027. Includes meals and drinks, airport shuttles, beach party dinner, meeting rooms, 3 onsite reps. Priced in US dollars.', t:617251, n:4, cur:'$', pax:190, rag:'rag-r'}];
 QUOTES.PMO = QUOTES.CTA; QUOTES.TPS = QUOTES.CTA;
 const PAX = 220, GREEN_PP = 1500, RED_PP = 2000;
 
@@ -181,15 +182,17 @@ function linkLine(code){
 }
 function costLine(code){
   const q = QUOTES[code];
-  if(!q) return ['AGP','BGI'].includes(code) ? '<span class="rag rag-n"></span>Cost: <b>no priced venue quote yet</b>'+(code==='BGI'?flightBlock():'') : '';
+  if(!q) return code==='AGP' ? '<span class="rag rag-n"></span>Cost: <b>no priced quote yet</b>' : '';
+  const cur = x => x.cur || '\u20AC', pax = x => x.pax || PAX, ppOf = x => Math.round(x.t/pax(x));
+  const rag = x => x.rag || ragOf(x.t);
   const priced = q.filter(x=>x.t);
-  const lo = Math.min(...priced.map(x=>x.t));
-  const pp = Math.round(lo/PAX), cls = ragOf(lo);
+  const best = priced.reduce((m,x)=> ppOf(x)<ppOf(m)?x:m, priced[0]);
+  const cls = rag(best);
   const lab = cls==='rag-g' ? 'Lower cost' : cls==='rag-a' ? 'Mid cost' : 'Higher cost';
   const rows = q.map(x=> x.t
-    ? `<div class="qrow"><span class="rag ${ragOf(x.t)}"></span><b>${eur(x.t)}</b> &middot; €${Math.round(x.t/PAX).toLocaleString('en-US')}/person <span class="qsub">${x.v}, ${x.n} nights. ${x.name}</span></div>`
+    ? `<div class="qrow"><span class="rag ${rag(x)}"></span><b>${cur(x)}${Math.round(x.t/1000)}k</b> &middot; ${cur(x)}${ppOf(x).toLocaleString('en-US')}/person <span class="qsub">${x.v}, ${x.n} nights. ${x.name}</span></div>`
     : `<div class="qrow"><span class="rag rag-n"></span><span class="qsub">${x.v}: ${x.name}</span></div>`).join('');
-  return `<b>${lab}</b> (from €${pp.toLocaleString('en-US')}/person, ${PAX} people)${rows}`;
+  return `<b>${lab}</b> (from ${cur(best)}${ppOf(best).toLocaleString('en-US')}/person, ${pax(best)} people)${rows}` + (code==='BGI' ? flightBlock() : '');
 }
 function tempBlock(code){ const l=linkLine(code); return janTemp(code) + (l?'<br><span class="qlinks">'+l+'</span>':''); }
 function scoreFor(code, rows){ const t=DEST_STOPS[code]; let score=0,b=[0,0,0,0]; rows.forEach(r=>{ const v=+t[HA.indexOf(r.airport)]; score+=r.employees*v; b[Math.min(v,3)]+=r.employees; }); return {score,b}; }
