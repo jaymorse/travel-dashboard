@@ -51,6 +51,10 @@ th.num { text-align:right; }
 .sc .b { font-size:12.5px; color:#3a4a62; }
 .jbtn { padding:9px 14px; border:1px solid var(--accent); border-radius:8px; background:#fff; color:var(--accent); font-size:14px; font-weight:600; cursor:pointer; }
 .sc .note { font-size:12px; color:#5a6a82; margin-top:6px; }
+.sc .cost { border-top:1px solid #e3e8ef; padding-top:6px; color:#3a4a62; }
+.sc .qsub { color:#7a8798; font-size:11px; }
+.rag { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:baseline; }
+.rag-g{background:#2e9e57}.rag-a{background:#e0a100}.rag-r{background:#d23b3b}.rag-n{background:#b8c0cc}
 .sc .vs { font-size:12.5px; font-weight:600; color:#1b6b35; margin-top:2px; }
 .sc.sel { background:#eaf1f9; border-color:var(--accent); }
 .sc.best { border-color:#2e9e5b; box-shadow:0 0 0 2px #cfeedb; }
@@ -109,6 +113,7 @@ th.num { text-align:right; }
 <div class="foot">
 <b>Connection score:</b> direct = 0, one stop = 1, two stops = 2, summed across employees (lower is better; responds to the country filter). Stops are the fewest connections on any scheduled commercial route from each employee's nearest airport, computed from the open <i>airline-route-data</i> route set. It does not distinguish seasonal from year-round service, does not check schedules or timings, and Sicily takes the best of Catania, Palermo, Trapani and Comiso. Marbella is scored to M&aacute;laga (AGP) Barcelona to BCN only (not Girona or Reus), and Malta to MLA. The mild-January button works through twelve above-freezing destinations scoring no more than about 20 points above Marbella (Palma, Faro, Nice, Rome, Athens, Olbia, Madrid, Istanbul, Paris, Dublin, Amsterdam, Edinburgh), two at a time and covering all twelve before any repeats; none is tropical, and nothing tropical scores that low. January temperatures are monthly means (average of daily highs and lows). Values without a tilde are from published climate normals for the airport's city. A tilde means an estimate: from the nearest reference city adjusted for elevation (est.), or modelled from latitude and elevation alone (rough est., about plus or minus 5&deg;C). Verify the specific routes for your travel dates before committing.<br><br>
 Flight time = estimated nonstop block time (great-circle distance / 810 km/h + 33 min for taxi, climb and descent), averaged over both directions; winds and routing vary it by &plusmn;10&ndash;15%. Many city pairs have no nonstop service &mdash; treat as a lower bound when a connection is required. Town &rarr; airport is straight-line; driving is typically 1.2&ndash;1.4&times; longer. One employee (Poland, no town listed) is excluded.
+<br><b>Cost:</b> totals are the vendor quotes received in October 2026 for 220 people, in euros, and are indicative: Surf Office (Barcelona, Malta, Athens) for 3 nights, Jan 11-14, including rooms, meals, meeting room and AV, airport transfers, one activity and a finale event; Campfire Company (Sicily) for 4 nights, Jan 11-15, with dinners and gala still to be added, and a 15% service fee on extras. The two vendors price different scopes, so treat comparisons as directional. Colour is set on the cheapest quote per person for that location: green under €1,500, amber €1,500 to €2,000, red above €2,000. Grey means no priced quote yet (Marbella, Barbados). Flights are not included.
 </div>
 </div>
 <script>
@@ -124,6 +129,25 @@ function janTemp(code){
   if(v[1]===0) return `Avg January: <b>${c}\u00B0C / ${f}\u00B0F</b>`;
   if(v[1]===1) return `Avg January: <b>~${c}\u00B0C / ${f}\u00B0F</b> <span title="Estimated from the nearest reference city, adjusted for elevation">(est.)</span>`;
   return `Avg January: <b>~${c}\u00B0C / ${f}\u00B0F</b> <span title="Modelled from latitude and elevation only; treat as rough, plus or minus 5C">(rough est.)</span>`;
+}
+
+// Vendor quotes (EUR, 220 people, indicative, as received Oct 2026). Surf = 3 nights Jan 11-14; Campfire = 4 nights Jan 11-15.
+const QUOTES = {
+  BCN:{v:'Surf', lo:378672, hi:378672, n:3, d:'Modern city hotel, Forum area'},
+  MLA:{v:'Surf', lo:387902, hi:387902, n:3, d:'Westin Dragonara Resort (5*)'},
+  ATH:{v:'Surf', lo:406189, hi:406189, n:3, d:'5* city hotel'},
+  CTA:{v:'Campfire', lo:280991, hi:528752, n:4, d:'Saracen Sands (4*) to Mangia’s Torre del Barone (5*)'}
+};
+QUOTES.PMO = QUOTES.CTA; QUOTES.TPS = QUOTES.CTA;
+const PAX = 220, GREEN_PP = 1500, RED_PP = 2000;
+function eur(n){ return n>=1e5 ? '€'+Math.round(n/1000)+'k' : '€'+n.toLocaleString('en-US'); }
+function costLine(code){
+  const q = QUOTES[code];
+  if(!q) return ['AGP','BGI'].includes(code) ? '<span class="rag rag-n"></span>Cost: <b>no priced quote yet</b>' : '';
+  const pp = Math.round(q.lo/PAX), cls = pp<GREEN_PP ? 'rag-g' : pp<=RED_PP ? 'rag-a' : 'rag-r';
+  const lab = pp<GREEN_PP ? 'Lower cost' : pp<=RED_PP ? 'Mid cost' : 'Higher cost';
+  const amt = q.lo===q.hi ? '<b>'+eur(q.lo)+'</b>' : '<b>'+eur(q.lo)+' to '+eur(q.hi)+'</b>';
+  return `<span class="rag ${cls}"></span><b>${lab}</b> &middot; ${amt} total${q.lo===q.hi?'':' (range)'} &middot; ${q.lo===q.hi?'':'from '}€${pp.toLocaleString('en-US')}/person<br><span class="qsub">${q.v} quote, ${q.n} nights. ${q.d}.</span>`;
 }
 const JAN_POOL = [
   {code:'PMI', name:'Palma de Mallorca (PMI)', note:'January: highs about 15°C, lows about 6°C. Quiet off-season island.'},
@@ -165,7 +189,7 @@ function renderJan(rows){
     return `<div class="sc sel"><div class="t">${o.name} &middot; mild January pick</div>
     <div class="n">${x.score}<small>total score</small></div>
     <div class="b">${x.b[0]} direct &middot; ${x.b[1]} one stop &middot; ${x.b[2]} two stops${x.b[3]?' &middot; '+x.b[3]+' 3+ stops':''}</div>
-    <div class="vs" style="${d>0?'color:#8a5a00':''}">${vs} (${mb})</div><div class="note">${janTemp(o.code)}<br>${o.note}</div></div>`; }).join('');
+    <div class="vs" style="${d>0?'color:#8a5a00':''}">${vs} (${mb})</div><div class="note">${janTemp(o.code)}<br>${o.note}</div>${costLine(o.code)?'<div class="note cost">'+costLine(o.code)+'</div>':''}</div>`; }).join('');
 }
 document.getElementById('janBtn').addEventListener('click', ()=>{ janOpen=true; pickJan(); render(); });
 document.getElementById('janHide').addEventListener('click', ()=>{ janOpen=false; render(); });
@@ -255,13 +279,13 @@ function render(){
     <div class="t">Your pick: ${destSel.city||destSel.name} (${destSel.code})</div>
     <div class="n">${sel.score}<small>total score${sel.score===min?' &middot; lowest':''}</small></div>
     <div class="b">${sel.b[0]} direct &middot; ${sel.b[1]} one stop &middot; ${sel.b[2]} two stops${sel.b[3]?' &middot; '+sel.b[3]+' 3+ stops':''}</div>
-    <div class="note">${janTemp(destSel.code)}</div></div>`
+    <div class="note">${janTemp(destSel.code)}</div>${costLine(destSel.code)?'<div class="note cost">'+costLine(destSel.code)+'</div>':''}</div>`
     : `<div class="sc sel"><div class="t">Your pick: ${destSel.city||destSel.name} (${destSel.code})</div><div class="b">No connecting route found from every home airport, so no score.</div><div class="note">${janTemp(destSel.code)}</div></div>`;
   document.getElementById('score').innerHTML = selCard + sc.map(x=>`<div class="sc${x.score===min?' best':''}">
     <div class="t">${KDEST[x.i]}</div>
     <div class="n">${x.score}<small>total score${x.score===min?' &middot; lowest':''}</small></div>
     <div class="b">${x.b[0]} direct &middot; ${x.b[1]} one stop &middot; ${x.b[2]} two stops${x.b[3]?' &middot; '+x.b[3]+' 3+ stops':''}</div>
-    <div class="note">${janTemp(JCODE[x.i])}</div></div>`).join('');
+    <div class="note">${janTemp(JCODE[x.i])}</div>${costLine(JCODE[x.i])?'<div class="note cost">'+costLine(JCODE[x.i])+'</div>':''}</div>`).join('');
   renderJan(rows);
   document.getElementById('tb').innerHTML = rows.map(r=>`<tr>
     <td>${r.country}</td>
