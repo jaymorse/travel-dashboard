@@ -119,7 +119,7 @@ th.num { text-align:right; }
 <div class="foot">
 <b>Connection score:</b> direct = 0, one stop = 1, two stops = 2, summed across employees (lower is better; responds to the country filter). Stops are the fewest connections on any scheduled commercial route from each employee's nearest airport, computed from the open <i>airline-route-data</i> route set. It does not distinguish seasonal from year-round service, does not check schedules or timings, and Sicily takes the best of Catania, Palermo, Trapani and Comiso. Marbella is scored to M&aacute;laga (AGP) Barcelona to BCN only (not Girona or Reus), and Malta to MLA. Only locations with a vendor quote are shown as tiles (plus Marbella and Barbados, where quotes are awaited); the Destination box still scores any airport. Athens is scored to ATH. January temperatures are monthly means (average of daily highs and lows). Values without a tilde are from published climate normals for the airport's city. A tilde means an estimate: from the nearest reference city adjusted for elevation (est.), or modelled from latitude and elevation alone (rough est., about plus or minus 5&deg;C). Verify the specific routes for your travel dates before committing.<br><br>
 Flight time = estimated nonstop block time (great-circle distance / 810 km/h + 33 min for taxi, climb and descent), averaged over both directions; winds and routing vary it by &plusmn;10&ndash;15%. Many city pairs have no nonstop service &mdash; treat as a lower bound when a connection is required. Town &rarr; airport is straight-line; driving is typically 1.2&ndash;1.4&times; longer. One employee (Poland, no town listed) is excluded.
-<br><b>Cost:</b> totals are the vendor quotes received in October 2026 for 220 people, in euros, and are indicative: Surf Office (Barcelona, Malta, Athens) for 3 nights, Jan 11-14, including rooms, meals, meeting room and AV, airport transfers, one activity and a finale event; Campfire Company (Sicily) for 4 nights, Jan 11-15, with dinners and gala still to be added, and a 15% service fee on extras. The two vendors price different scopes, so treat comparisons as directional. Colour is set on the cheapest quote per person for that location: green under €1,500, amber €1,500 to €2,000, red above €2,000. Grey means no priced quote yet (Marbella, Barbados). Flights are not included.
+<br><b>Cost:</b> totals are the vendor quotes received in October 2026 for 220 people, in euros, and are indicative: Surf Office (Barcelona, Malta, Athens) for 3 nights, Jan 11-14, including rooms, meals, meeting room and AV, airport transfers, one activity and a finale event; Campfire Company (Sicily) for 4 nights, Jan 11-15, with rooms, meals including gala dinner, plenary room and Campfire's 15% service fee included but airport transfers, activities and other third-party costs billed separately (Campfire says these are still indicative). The two vendors price different scopes, so treat comparisons as directional. Colour is set on the cheapest quote per person for that location: green under €1,500, amber €1,500 to €2,000, red above €2,000. Grey means no priced quote yet (Marbella, Barbados). Flights are not included.
 </div>
 </div>
 <script>
@@ -146,10 +146,10 @@ const QUOTES = {
   MLA:[{v:'Surf', name:'Westin Dragonara Resort (5*)', t:387902, n:3, link:'https://app.pandadoc.com/document/v2?token=9af17232e82d9f39fa1e793180c455dfc6fc0e64'}],
   ATH:[{v:'Surf', name:'5* city hotel', t:406189, n:3, link:'https://app.pandadoc.com/document/v2?token=6589faffbcc4e22354b1eac77b106e6f48eaef43'}],
   CTA:[
-    {v:'Campfire', name:'Saracen Sands (4*), rooms buy-out', t:280991, n:4, link:CR},
-    {v:'Campfire', name:'Saracen Sands (4*), full buy-out', t:301030, n:4, link:CR},
-    {v:'Campfire', name:'Mangia’s Pollina Resort (4*)', t:514234, n:4, link:CR},
-    {v:'Campfire', name:'Mangia’s Torre del Barone (5*)', t:528752, n:4, link:CR}]
+    {v:'Campfire', name:'Saracen Sands (4*), rooms buy-out. €106k rooms, €11k plenary room, €121k catering incl. gala dinners, €6.5k onsite team, 15% fee in total.', t:280991, n:4, link:CR},
+    {v:'Campfire', name:'Saracen Sands (4*), full buy-out. €106k rooms, €29k all meeting rooms, €121k catering incl. gala dinners, €6.5k onsite team, 15% fee in total. 13 km from Palermo airport.', t:301030, n:4, link:CR},
+    {v:'Campfire', name:'Mangia’s Pollina Resort (4*). €408k rooms and full board, €30k meeting package. 94 km from Palermo airport.', t:514234, n:4, link:CR},
+    {v:'Campfire', name:'Mangia’s Torre del Barone (5*). €420k rooms and full board, €27k meeting package. Exclusivity to be confirmed. 73 km from Trapani airport.', t:528752, n:4, link:CR}]
 };
 QUOTES.PMO = QUOTES.CTA; QUOTES.TPS = QUOTES.CTA;
 const PAX = 220, GREEN_PP = 1500, RED_PP = 2000;
