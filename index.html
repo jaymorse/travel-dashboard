@@ -54,6 +54,11 @@ th.num { text-align:right; }
 .sc .cost { border-top:1px solid #e3e8ef; padding-top:6px; color:#3a4a62; }
 .sc .qsub { color:#7a8798; font-size:11px; display:block; margin-left:16px; }
 .sc .qrow { margin-top:4px; }
+.sc .fl { margin-top:6px; font-size:11.5px; }
+.sc .fl summary { cursor:pointer; }
+.sc .fl table { border-collapse:collapse; margin-top:4px; width:100%; }
+.sc .fl td,.sc .fl th { border-top:1px solid #e3e8ef; padding:2px 4px; text-align:left; font-weight:400; vertical-align:top; }
+.sc .fl th { font-weight:600; }
 .sc .qlinks a { color:#1a5fb4; }
 .rag { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:baseline; }
 .rag-g{background:#2e9e57}.rag-a{background:#e0a100}.rag-r{background:#d23b3b}.rag-n{background:#b8c0cc}
@@ -148,6 +153,23 @@ const QUOTES = {
 };
 QUOTES.PMO = QUOTES.CTA; QUOTES.TPS = QUOTES.CTA;
 const PAX = 220, GREEN_PP = 1500, RED_PP = 2000;
+
+// Barbados flight info from the team's flight comparison sheet (highest economy fare in GBP; hours; connections).
+const BGI_FLIGHTS = [
+  ['Canada','5',0,500,'Visa-free, 90 days'],['Delhi','17-21',1,1400,'Visa required (10-15 business days / Barbados up to 3 weeks)'],
+  ['London','9',0,1100,'Visa-free, 6 months'],['Netherlands','11-13',1,1300,'Visa-free, 90 days'],
+  ['Sweden','11-13',1,1300,'Visa-free, 90 days'],['Paris','11-13',1,1300,'Visa-free, 90 days'],
+  ['Cardiff','9',0,1200,'Visa-free, 6 months'],['Edinburgh','9-12',1,1200,'Visa-free, 6 months'],
+  ['Grenoble','12',1,1500,'Visa-free, 90 days'],['Toulouse (Friday best day to fly)','13-17',1,1700,'Visa-free, 90 days'],
+  ['New York','5',0,300,'Visa-free, 90 days'],['Denver','8-10',1,500,'Visa-free, 90 days'],
+  ['California','12-15',1,400,'Visa-free, 90 days'],['Washington','7',1,600,'Visa-free, 90 days'],
+  ['Austin','8',1,600,'Visa-free, 90 days'],['Wroclaw','12',1,1500,'Visa-free, 90 days'],
+  ['Macedonia','23',2,4000,'Visa-free, 90 days']
+];
+function flightBlock(){
+  const rows = BGI_FLIGHTS.map(f=>`<tr><td>${f[0]}</td><td>${f[1]}h</td><td>${f[2]===0?'Direct':f[2]+' stop'+(f[2]>1?'s':'')}</td><td>£${f[3].toLocaleString('en-US')}</td><td>${f[4]}</td></tr>`).join('');
+  return `<details class="fl"><summary><b>Flights from home locations</b> (team sheet): £300 to £1,700 highest economy fare, £4,000 from Macedonia; Delhi needs a visa</summary><table><tr><th>From</th><th>Time</th><th>Stops</th><th>Fare</th><th>Visa</th></tr>${rows}</table></details>`;
+}
 function eur(n){ return '€'+Math.round(n/1000)+'k'; }
 function ragOf(t){ const pp=t/PAX; return pp<GREEN_PP ? 'rag-g' : pp<=RED_PP ? 'rag-a' : 'rag-r'; }
 function linkLine(code){
@@ -159,7 +181,7 @@ function linkLine(code){
 }
 function costLine(code){
   const q = QUOTES[code];
-  if(!q) return ['AGP','BGI'].includes(code) ? '<span class="rag rag-n"></span>Cost: <b>no priced quote yet</b>' : '';
+  if(!q) return ['AGP','BGI'].includes(code) ? '<span class="rag rag-n"></span>Cost: <b>no priced venue quote yet</b>'+(code==='BGI'?flightBlock():'') : '';
   const priced = q.filter(x=>x.t);
   const lo = Math.min(...priced.map(x=>x.t));
   const pp = Math.round(lo/PAX), cls = ragOf(lo);
